@@ -1,0 +1,83 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <unordered_map>
+#include <climits>
+
+using namespace std;
+
+// Define the graph as an adjacency list (node -> list of pairs (neighbor, weight))
+unordered_map<char, vector<pair<char, int>>> graph = {
+    {'A', {{'B', 10}, {'E', 3}}},
+    {'B', {{'C', 2}, {'E', 1}}},
+    {'C', {{'D', 9}}},
+    {'D', {}},
+    {'E', {{'B', 1}, {'C', 8}}}
+};
+
+// Function to perform Dijkstra's Algorithm
+pair<int, vector<char>> dijkstra(char start, char end) {
+    unordered_map<char, int> distances;
+    unordered_map<char, char> previous;
+    priority_queue<pair<int, char>, vector<pair<int, char>>, greater<>> min_heap;
+
+    // Initialize distances to all nodes as infinity, except the starting node
+    for (auto& node : graph) distances[node.first] = INT_MAX;
+    distances[start] = 0;
+
+    // Push the starting node to the priority queue
+    min_heap.push({0, start});
+
+    while (!min_heap.empty()) {
+        auto [current_dist, current_node] = min_heap.top();
+        min_heap.pop();
+
+        // If we reach the destination, stop
+        if (current_node == end) break;
+
+        // Relax the edges
+        for (auto& [neighbor, weight] : graph[current_node]) {
+            int new_dist = current_dist + weight;
+            if (new_dist < distances[neighbor]) {
+                distances[neighbor] = new_dist;
+                previous[neighbor] = current_node;
+                min_heap.push({new_dist, neighbor});
+            }
+        }
+    }
+
+    // Reconstruct the shortest path from start to end
+    vector<char> path;
+    for (char at = end; at != 0; at = previous[at]) {
+        path.insert(path.begin(), at);
+    }
+
+    // Return the shortest distance and path
+    return {distances[end], path};
+}
+
+int main() {
+    char start, end;
+
+    // Get user input for start and end nodes
+    cout << "Enter the starting node: ";
+    cin >> start;
+    cout << "Enter the ending node: ";
+    cin >> end;
+
+    // Run Dijkstra's Algorithm and print results
+    auto [cost, path] = dijkstra(start, end);
+
+    if (cost == INT_MAX) {
+        cout << "No path exists from " << start << " to " << end << "." << endl;
+    } else {
+        cout << "Shortest path cost: " << cost << endl;
+        cout << "Path: ";
+        for (char node : path) {
+            cout << node << " ";
+        }
+        cout << endl;
+    }
+
+    return 0;
+}
